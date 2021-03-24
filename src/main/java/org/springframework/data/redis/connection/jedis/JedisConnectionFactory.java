@@ -281,7 +281,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			// force initialization (see Jedis issue #82)
 			jedis.connect();
 
-			potentiallySetClientName(jedis);
 			return jedis;
 		} catch (Exception ex) {
 			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
@@ -896,7 +895,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					return jedis;
 				}
 			} catch (Exception ex) {
-				log.warn(String.format("Ping failed for sentinel host:%s", node.getHost()), ex);
+				log.warn(String.format("Ping failed for sentinel host: %s", node.getHost()), ex);
 			} finally {
 				if (!success && jedis != null) {
 					jedis.close();
@@ -920,10 +919,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			}
 		}
 		return convertedNodes;
-	}
-
-	private void potentiallySetClientName(Jedis jedis) {
-		clientConfiguration.getClientName().ifPresent(jedis::clientSetname);
 	}
 
 	private int getReadTimeout() {
