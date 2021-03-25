@@ -360,7 +360,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
 
-		builder.databse(getDatabase());
+		builder.database(getDatabase());
 
 		if (!ObjectUtils.isEmpty(username)) {
 			builder.user(username);
@@ -497,8 +497,15 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, getDatabase(), getClientName())
-				: new JedisConnection(jedis, null, getDatabase(), getClientName()));
+		JedisClientConfig sentinelConfig = this.clientConfig;
+
+		SentinelConfiguration sentinelConfiguration = getSentinelConfiguration();
+		if (sentinelConfiguration != null) {
+			sentinelConfig = createClientConfig(null, sentinelConfiguration.getSentinelPassword());
+		}
+
+		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, this.clientConfig, sentinelConfig)
+				: new JedisConnection(jedis, null, this.clientConfig, sentinelConfig));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
